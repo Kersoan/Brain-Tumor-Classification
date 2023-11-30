@@ -85,7 +85,7 @@ model.save('brain_tumor_classifier.h5')
 
 ```
 ### Output:
-![out1.png]
+![Image](out1.png)
 image/png":
 image/png":
 
