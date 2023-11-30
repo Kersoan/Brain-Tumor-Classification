@@ -202,6 +202,10 @@ Y_val (dev) shape: (310, 1)
 X_test shape: (310, 240, 240, 3)
 Y_test shape: (310, 1)
 
+![training-loss1](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/e2d16f15-66e2-4c1e-993a-d8b8129a975d)
+![training-accuracy2](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/e15bb844-1cb2-4aed-9886-470b9e934440)
+
+
 def build_model(input_shape):
     # Define the input placeholder as a tensor with shape input_shape. 
     X_input = Input(input_shape)
