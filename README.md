@@ -38,6 +38,8 @@ I cropped and augmented the images before building, compiling, training, and eva
 
 ![crop](https://github.com/nazianafis/Brain-Tumor-Classification/blob/main/screenshots/crop-img.png)
 
+## Program
+
 ## Results<a name="results"></a>
 
 In the end, I could validate a test image passed through the model.
