@@ -6,9 +6,6 @@ Brain tumors account for 85% to 90% of all primary central nervous system tumors
 ## Feature Extraction:
 In brain tumor classification using Convolutional Neural Networks (CNNs), feature extraction plays a crucial role in identifying distinctive patterns within medical images. CNNs are a class of deep learning models designed to automatically learn hierarchical features from input data. In the context of brain tumor classification, the CNN is trained on a dataset of medical images, such as MRI scans. During training, the network learns to extract relevant features, such as tumor shape, texture, and spatial relationships, by applying convolutional filters across the input images. These learned features enable the CNN to discern subtle differences between tumor and non-tumor regions. By leveraging the power of deep learning, CNNs have shown promising results in accurately classifying brain tumors, aiding healthcare professionals in diagnosis and treatment planning.
 
-## Architecture Diagram:
-![1](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/abff3989-088c-495b-b471-f253964fec0f)
-
 
 
 ## Getting Started <a name="getting-started"></a>
@@ -23,6 +20,9 @@ In brain tumor classification using Convolutional Neural Networks (CNNs), featur
 * Datasets: The complete set of files is publicly available and can be downloaded from Kaggle. Alternatively, you can find the folder (titled _Brain-MRI_) in my Github repository.
 * Others: The code can be run in as an Interactive Python Notebook (ipynb). No additional installation is required.
     - Colaboratory allows you to use and share Jupyter notebooks with others without having to download, install, or run anything on your own computer (other than a browser).
+
+## Architecture Diagram:
+![1](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/abff3989-088c-495b-b471-f253964fec0f)
 
 ### Project Motivation <a name="project-motivation"></a>
 
