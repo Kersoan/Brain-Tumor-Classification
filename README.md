@@ -272,6 +272,10 @@ data_percentage(y_test)
 
 ![out3](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/2352074b-0948-4f6c-bfb1-08fbe0972adf)
 
+### Flowchart:
+![training-loss1](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/e2d16f15-66e2-4c1e-993a-d8b8129a975d)
+![training-accuracy2](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/e15bb844-1cb2-4aed-9886-470b9e934440)
+
 ## Results<a name="results"></a>
 
 In the end, I could validate a test image passed through the model.
