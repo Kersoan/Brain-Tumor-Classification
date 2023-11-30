@@ -35,7 +35,6 @@ The Project builds a model that is trained on images of Brain MRI Scans, which i
 
 ## Program
 ```
-# Import necessary libraries
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from sklearn.model_selection import train_test_split
@@ -86,6 +85,7 @@ model.save('brain_tumor_classifier.h5')
 
 ```
 ### Output:
+image/png":
 image/png":
 image/png":
 
