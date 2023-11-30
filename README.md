@@ -15,8 +15,8 @@ In brain tumor classification using Convolutional Neural Networks (CNNs), featur
 
 ### Installation <a name="installation"></a>
 
-* Datasets: The complete set of files is publicly available and can be downloaded from Kaggle. Alternatively, you can find the folder (titled _Brain-MRI_) in my Github repository [here](https://github.com/nazianafis/Brain-Tumor-Classification/tree/main/Brain-MRI).
-* Others: The code can be run in [Google Colab](https://colab.research.google.com/github/nazianafis/Brain-Tumor-Classification/blob/main/Brain_Tumor_Classify.ipynb) as an Interactive Python Notebook (ipynb). No additional installation is required.
+* Datasets: The complete set of files is publicly available and can be downloaded from Kaggle. Alternatively, you can find the folder (titled _Brain-MRI_) in my Github repository.
+* Others: The code can be run in as an Interactive Python Notebook (ipynb). No additional installation is required.
     - Colaboratory allows you to use and share Jupyter notebooks with others without having to download, install, or run anything on your own computer (other than a browser).
 
 ### Project Motivation <a name="project-motivation"></a>
