@@ -41,53 +41,227 @@ The Project builds a model that is trained on images of Brain MRI Scans, which i
 ## Program
 ```
 import tensorflow as tf
-from tensorflow.keras import layers, models
+import os
+from keras.layers import Conv2D, Input, ZeroPadding2D, BatchNormalization, Activation, MaxPooling2D, Flatten, Dense,Dropout
+from keras.models import Model, load_model
+from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import f1_score
+from sklearn.utils import shuffle
+import cv2
+import imutils
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+from os import listdir
 
-# Load your dataset and preprocess it
-# For simplicity, let's assume you have a dataset with images and corresponding labels
+get_ipython().magic(u'matplotlib inline')
 
-# Perform one-hot encoding for labels
-label_encoder = LabelEncoder()
-y_encoded = label_encoder.fit_transform(y)
-y_onehot = tf.keras.utils.to_categorical(y_encoded, num_classes=num_classes)
+def crop_brain_contour(image, plot=False):
 
-# Split the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y_onehot, test_size=0.2, random_state=42)
+    # Convert the image to grayscale, and blur it slightly
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-# Build the CNN model
-model = models.Sequential()
-model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(img_height, img_width, img_channels)))
-model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Flatten())
-model.add(layers.Dense(128, activation='relu'))
-model.add(layers.Dense(num_classes, activation='softmax'))
+    # Threshold the image, then perform a series of erosions +
+    # dilations to remove any small regions of noise
+    thresh = cv2.threshold(gray, 45, 255, cv2.THRESH_BINARY)[1]
+    thresh = cv2.erode(thresh, None, iterations=2)
+    thresh = cv2.dilate(thresh, None, iterations=2)
 
-# Compile the model
-model.compile(optimizer='adam',
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
+    # Find contours in thresholded image, then grab the largest one
+    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+    c = max(cnts, key=cv2.contourArea)
 
-# Data augmentation to improve model generalization
-datagen = ImageDataGenerator(rotation_range=20, width_shift_range=0.2, height_shift_range=0.2, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
-datagen.fit(X_train)
+    # Find the extreme points
+    extLeft = tuple(c[c[:, :, 0].argmin()][0])
+    extRight = tuple(c[c[:, :, 0].argmax()][0])
+    extTop = tuple(c[c[:, :, 1].argmin()][0])
+    extBot = tuple(c[c[:, :, 1].argmax()][0])
 
-# Train the model
-history = model.fit(datagen.flow(X_train, y_train, batch_size=batch_size),
-                    epochs=epochs,
-                    validation_data=(X_test, y_test))
+    # crop new image out of the original image using the four extreme points (left, right, top, bottom)
+    new_image = image[extTop[1]:extBot[1], extLeft[0]:extRight[0]]
 
-# Evaluate the model
-test_loss, test_acc = model.evaluate(X_test, y_test)
-print(f'Test Accuracy: {test_acc}')
+    if plot:
+        plt.figure()
 
-# Save the model for future use
-model.save('brain_tumor_classifier.h5')
+        plt.subplot(1, 2, 1)
+        plt.imshow(image)
 
+        plt.tick_params(axis='both', which='both',
+                        top=False, bottom=False, left=False, right=False,
+                        labelbottom=False, labeltop=False, labelleft=False, labelright=False)
+        plt.title('Original Image')
+        plt.subplot(1, 2, 2)
+        plt.imshow(new_image)
+        plt.tick_params(axis='both', which='both',
+                        top=False, bottom=False, left=False, right=False,
+                        labelbottom=False, labeltop=False, labelleft=False, labelright=False)
+        plt.title('Cropped Image')
+        plt.show()
+    return new_image
+
+ex_img = cv2.imread('yes/Y1.jpg')
+ex_new_img = crop_brain_contour(ex_img, True)
+
+def load_data(dir_list, image_size):
+    """
+    Read images, resize and normalize them. 
+    Arguments:
+        dir_list: list of strings representing file directories.
+    Returns:
+        X: A numpy array with shape = (#_examples, image_width, image_height, #_channels)
+        y: A numpy array with shape = (#_examples, 1)
+    """
+    # load all images in a directory
+    X = []
+    y = []
+    image_width, image_height = image_size
+    for directory in dir_list:
+        for filename in listdir(directory):
+            print(filename)
+            print(directory)
+            # load the image
+            image = cv2.imread(directory + '/' + filename)
+            # print(image)
+            # crop the brain and ignore the unnecessary rest part of the image
+            image = crop_brain_contour(image, plot=False)
+            # resize image
+            image = cv2.resize(image, dsize=(image_width, image_height), interpolation=cv2.INTER_CUBIC)
+            # normalize values
+            image = image / 255.
+            # convert image to numpy array and append it to X
+            X.append(image)
+            # append a value of 1 to the target array if the image
+            # is in the folder named 'yes', otherwise append 0.
+            if directory[-3:] == 'yes':
+                y.append([1])
+            else:
+                y.append([0])
+    X = np.array(X)
+    y = np.array(y)
+    # Shuffle the data
+    X, y = shuffle(X, y)
+    print('Number of examples is:{}'.format(len(X)))
+    return X,y
+augmented_path = 'augmented data/'
+# augmented data (yes and no) contains both the original and the new generated examples
+augmented_yes = augmented_path + 'yes'
+augmented_no = augmented_path + 'no'
+IMG_WIDTH, IMG_HEIGHT = (240, 240)
+X, y = load_data([augmented_yes, augmented_no], (IMG_WIDTH, IMG_HEIGHT))
+
+def plot_sample_images(X, y, n=50):
+
+    for label in [0,1]:
+        # grab the first n images with the corresponding y values equal to label
+        images = X[np.argwhere(y == label)]
+        n_images = images[:n]
+
+        columns_n = 10
+        rows_n = int(n/ columns_n)
+
+        plt.figure(figsize=(20, 10))
+
+        i = 1 # current plot        
+        for image in n_images:
+            plt.subplot(rows_n, columns_n, i)
+            plt.imshow(image[0])
+
+            # remove ticks
+            plt.tick_params(axis='both', which='both',
+                            top=False, bottom=False, left=False, right=False,
+                           labelbottom=False, labeltop=False, labelleft=False, labelright=False)
+
+            i += 1
+
+        label_to_str = lambda label: "Yes" if label == 1 else "No"
+        plt.suptitle("Brain Tumor: {}".format(label_to_str(label)))
+        plt.show()
+
+plot_sample_images(X, y)
+
+print ("number of training examples = " + str(X_train.shape[0]))
+print ("number of development examples = " + str(X_val.shape[0]))
+print ("number of test examples = " + str(X_test.shape[0]))
+print ("X_train shape: " + str(X_train.shape))
+print ("Y_train shape: " + str(y_train.shape))
+print ("X_val (dev) shape: " + str(X_val.shape))
+print ("Y_val (dev) shape: " + str(y_val.shape))
+print ("X_test shape: " + str(X_test.shape))
+print ("Y_test shape: " + str(y_test.shape))
+
+number of training examples = 1445
+number of development examples = 310
+number of test examples = 310
+X_train shape: (1445, 240, 240, 3)
+Y_train shape: (1445, 1)
+X_val (dev) shape: (310, 240, 240, 3)
+Y_val (dev) shape: (310, 1)
+X_test shape: (310, 240, 240, 3)
+Y_test shape: (310, 1)
+
+def build_model(input_shape):
+    # Define the input placeholder as a tensor with shape input_shape. 
+    X_input = Input(input_shape)
+    X = Conv2D(64, (3, 3), strides = (1, 1), name = 'conv0')(X_input)
+    X = BatchNormalization(axis = 3, name = 'bn0')(X)
+    X = Activation('relu')(X) # 
+
+    # MAXPOOL
+    X = MaxPooling2D((2, 2), name='max_pool0')(X) # 
+    # X=Dropout(0.50)(X)
+
+
+    X = Conv2D(128, (5, 5), strides=(2, 2), name='conv1')(X)
+    X = BatchNormalization(axis=3, name='bn1')(X)
+    X = Activation('relu')(X)  # shape=(?, 238, 238, 32)
+    # MAXPOOL
+    X = MaxPooling2D((4, 4), name='max_pool1')(X) # shape=(?, 14, 14, 32)
+    X=Dropout(0.50)(X)
+
+    # FLATTEN X 
+    X = Flatten()(X) # shape=(?, 6272)
+    # FULLYCONNECTED
+    X = Dense(1, activation='sigmoid', name='fc')(X) # shape=(?, 1)
+
+
+    model = Model(inputs = X_input, outputs = X, name='BrainDetectionModel')
+
+    return model
+model.metrics_names
+loss, acc = model.evaluate(x=X_test, y=y_test)
+print ("Test Loss = {}".format(loss))
+print ("Test Accuracy = {}".format(acc))
+
+Test Loss = 0.274844214032
+Test Accuracy = 0.916129034181
+
+f1score = compute_f1_score(y_test, y_test_prob)
+y_val_prob = model.predict(X_val)
+f1score_val = compute_f1_score(y_val, y_val_prob)
+
+
+def data_percentage(y):
+
+    m=len(y)
+    n_positive = np.sum(y)
+    n_negative = m - n_positive
+
+    pos_prec = (n_positive* 100.0)/ m
+    neg_prec = (n_negative* 100.0)/ m
+
+    print("Number of examples:{}".format(m))
+    print("Percentage of positive examples: {}%, number of pos examples: {}".format(pos_prec,n_positive))
+    print("Percentage of negative examples: {}%, number of neg examples: {}".format(neg_prec,n_negative))
+
+print("Training Data:")
+data_percentage(y_train)
+print("Validation Data:")
+data_percentage(y_val)
+print("Testing Data:")
+data_percentage(y_test)
 ```
 ### Output:
 ![out1](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/c6252156-ff8e-4e0a-aae1-408ac5440f15)
