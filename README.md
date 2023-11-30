@@ -85,7 +85,8 @@ model.save('brain_tumor_classifier.h5')
 
 ```
 ### Output:
-![Image]("out1.png")
+![out1](https://github.com/Kersoan/Brain-Tumor-Classification/assets/94525886/c6252156-ff8e-4e0a-aae1-408ac5440f15)
+)
 image/png":
 image/png":
 
