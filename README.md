@@ -1,4 +1,4 @@
-# Brain-Tumor-Classification Using CNN
+# Brain_Tumor_Classification_Using_Convolutional_Neural_Network
 
 ## Overview <a name="overview"></a>
 Brain tumors account for 85% to 90% of all primary central nervous system tumors around the world, with the highest incidence and mortality belonging to high HDI regions. With some image classification techniques, I was able to train a model which could then not only determine the presence of a tumor from Brain MRI Scan but also classify the tumor into one of the following types: Glioma, Meningioma, Pituitary Tumor.
